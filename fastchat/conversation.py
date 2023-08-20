@@ -354,7 +354,7 @@ register_conv_template(
         messages=(),
         offset=0,
         sep_style=SeparatorStyle.ADD_COLON_TWO,
-        sep=" ",
+        sep="\n\n",
         sep2="</s>",
     )
 )

@@ -23,18 +23,23 @@ parser.add_argument("--begin", type=int)
 parser.add_argument("--end", type=int)
 parser.add_argument("--model-name-or-path", type=str, required=True)
 parser.add_argument("--max-length", type=int, default=2048)
+parser.add_argument("--use-system-message", action='store_true')
 args = parser.parse_args()
 
 
 
 def make_sample(sample, start_idx, end_idx):
     assert (end_idx - start_idx) % 2 == 0
-    return {
+    new_sample = {
         "id": sample["id"] + "_" + str(start_idx),
-        "title": sample['title'],
-        "system_message": sample['system_message'],
-        "conversations": sample["conversations"][start_idx:end_idx],
     }
+    for key in sample:
+        if key not in new_sample:
+            new_sample[key] = sample[key]
+
+    new_sample["conversations"] = sample["conversations"][start_idx:end_idx]
+    return new_sample
+
 
 
 tokenizer = max_length = None
@@ -42,8 +47,11 @@ tokenizer = max_length = None
 
 def split_one_sample(sample):
     # pdb.set_trace()
-    system_message_len = len(tokenizer(sample['system_message']).input_ids)
-    max_length_v2 = args.max_length - system_message_len
+    max_length_v2 = args.max_length
+    if args.use_system_message:
+        system_message_len = len(tokenizer(sample['system_message']).input_ids)
+        max_length_v2 = max_length_v2 - system_message_len
+        # print(max_length_v2)
     tokenized_lens = []
     conversations = sample["conversations"]
     conversations = conversations[: len(conversations) // 2 * 2]
@@ -74,7 +82,7 @@ def split_one_sample(sample):
 
 def worker(input_data):
     result = []
-    for sample in input_data:
+    for sample in tqdm(input_data):
         result.extend(split_one_sample(sample))
     return result
 
