@@ -22,6 +22,8 @@ from typing import Dict, Optional, Sequence
 
 import numpy as np
 import torch
+torch.set_printoptions(threshold=5000)
+
 from torch.utils.data import Dataset
 import transformers
 from transformers import Trainer
@@ -48,6 +50,9 @@ class DataArguments:
         default=None, metadata={"help": "Path to the evaluation data."}
     )
     lazy_preprocess: bool = False
+    prompt_template: str = field(
+        default=None, metadata={"help": "Name of the prompt template registered in conversation.py."}
+    )
 
 
 @dataclass
@@ -161,13 +166,14 @@ def preprocess(
 def preprocess_call(
     raw_data,
     tokenizer: transformers.PreTrainedTokenizer,
+    data_args
 ) -> Dict:
-    conv = get_conv_template("prospect_lm")
+    conv = get_conv_template(data_args.prompt_template)
     roles = {"sales rep": conv.roles[0], "prospect": conv.roles[1]}
     # Apply prompt templates
     conversations = []
     for i, example in enumerate(raw_data):
-        conv.set_system_message(example['system_message'] + "\n\n")
+        conv.set_system_message(example['system_message'])
         source = example['conversations']
         if roles[source[0]["from"]] != conv.roles[0]:
             # Skip the first one if it is not from human
@@ -204,6 +210,7 @@ def preprocess_call(
         turns = conversation.split(conv.sep2)
         cur_len = 1
         target[:cur_len] = IGNORE_TOKEN_ID
+        
         for i, turn in enumerate(turns):
             if turn == "":
                 break
@@ -225,8 +232,8 @@ def preprocess_call(
         if False:  # Inspect and check the correctness of masking
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
-            rank0_print(tokenizer.decode(z))
-
+            print(tokenizer.decode(z))
+        # pdb.set_trace()
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
                 target[:] = IGNORE_TOKEN_ID
@@ -234,7 +241,7 @@ def preprocess_call(
                     f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
                     f" (ignored)"
                 )
-
+        # print(f"Conversation: {conversation}\nTarget: {target}\n\n\n")
     return dict(
         input_ids=input_ids,
         labels=targets,
@@ -269,7 +276,7 @@ class SalesCallDataset(Dataset):
 class LazySalesCallDataset(Dataset):
     """Dataset for supervised fine-tuning."""
 
-    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer):
+    def __init__(self, raw_data, tokenizer: transformers.PreTrainedTokenizer, data_args=None):
         super(LazySalesCallDataset, self).__init__()
         self.tokenizer = tokenizer
 
@@ -277,6 +284,7 @@ class LazySalesCallDataset(Dataset):
         self.tokenizer = tokenizer
         self.raw_data = raw_data
         self.cached_data_dict = {}
+        self.data_args = data_args
 
     def __len__(self):
         return len(self.raw_data)
@@ -285,7 +293,7 @@ class LazySalesCallDataset(Dataset):
         if i in self.cached_data_dict:
             return self.cached_data_dict[i]
 
-        ret = preprocess_call([self.raw_data[i]], self.tokenizer)
+        ret = preprocess_call([self.raw_data[i]], self.tokenizer, data_args=self.data_args)
         ret = dict(
             input_ids=ret["input_ids"][0],
             labels=ret["labels"][0],
@@ -360,7 +368,7 @@ def make_supervised_data_module(
     rank0_print("Loading data...")
 
     train_json = json.load(open(data_args.data_path, "r"))
-    train_dataset = dataset_cls(train_json, tokenizer=tokenizer)
+    train_dataset = dataset_cls(train_json, tokenizer=tokenizer, data_args=data_args)
 
     if data_args.eval_data_path:
         eval_json = json.load(open(data_args.eval_data_path, "r"))

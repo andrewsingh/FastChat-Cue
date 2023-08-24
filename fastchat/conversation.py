@@ -359,6 +359,34 @@ register_conv_template(
     )
 )
 
+# Meeting coach template
+register_conv_template(
+    Conversation(
+        name="prospect_lm_sys",
+        system_template="<<SYS>>\n{system_message}\n<</SYS>>\n\n",
+        roles=("SALES REP", "PROSPECT"),
+        messages=(),
+        offset=0,
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
+        sep="\n\n",
+        sep2="</s>",
+    )
+)
+
+register_conv_template(
+    Conversation(
+        name="prospect_lm_llama2",
+        system_template="[INST] <<SYS>>\n{system_message}\n<</SYS>>\n\n",
+        roles=("[INST]", "[/INST]"),
+        messages=(),
+        offset=0,
+        sep_style=SeparatorStyle.ADD_COLON_TWO,
+        sep=" ",
+        sep2=" </s><s>",
+        stop_token_ids=[2],
+    )
+)
+
 register_conv_template(
     Conversation(
         name="airoboros_v1",

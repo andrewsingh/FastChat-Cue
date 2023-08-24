@@ -1,11 +1,8 @@
-deepspeed fastchat/train/train_lora.py \
-    --model_name_or_path meta-llama/Llama-2-7b-hf \
-    --lora_r 8 \
-    --lora_alpha 16 \
-    --lora_dropout 0.05 \
-    --data_path /home/ubuntu/FastChat/data/prospect_lm/prospect_lm_v1_intro_calls_split_1088.json \
+deepspeed fastchat/train/train.py \
+    --model_name_or_path meta-llama/Llama-2-13b-hf \
+    --data_path /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/data/prospect_lm/prospect_lm_v2_train_split_max_2000.json \
     --bf16 True \
-    --output_dir /home/ubuntu/FastChat/output/prospect_lm_v1_peft \
+    --output_dir /home/ubuntu/prospect-lm-a100-80gb/output/prospect_lm_v3_2000 \
     --num_train_epochs 5 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
@@ -14,12 +11,12 @@ deepspeed fastchat/train/train_lora.py \
     --save_strategy "epoch" \
     --save_total_limit 5 \
     --learning_rate 2e-5 \
-    --weight_decay 0. \
+    --weight_decay 0.1 \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --tf32 True \
-    --model_max_length 1088 \
-    --q_lora True \
+    --model_max_length 2000 \
     --lazy_preprocess True \
+    --gradient_checkpointing True \
     --deepspeed playground/deepspeed_config_s2.json \
