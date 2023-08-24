@@ -4,11 +4,11 @@ import os
 import re
 import requests
 import torch
-import whisperx
 import locale
 import time
 import pdb
 import shutil
+import openai
 
 from pathlib import Path
 from pydub import AudioSegment
@@ -24,15 +24,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--input-json", type=str, default=None)
 parser.add_argument("--data-dir", type=str)
 parser.add_argument("--output-dir", type=str)
+parser.add_argument("--use-api", action='store_true')
 parser.add_argument("--debug", action='store_true')
 args = parser.parse_args()
 
 
-model = whisperx.load_model('large-v2', device=device)
-
+if args.use_api:
+    import openai
+else:
+    import whisperx
+    model = whisperx.load_model('large-v2', device=device)
+    
     
 
 def transcribe_call(call):
+    # initial_prompt = "Corrected for spelling discrepancies and mistakes in grammar and syntax, and filler words removed: "
+    initial_prompt = None
     call_id = call['metadata']['id']
     print(f"Transcribing call {call_id}")
     original_filename = Path(args.data_dir) / call_id / "original.mp3"
@@ -50,12 +57,17 @@ def transcribe_call(call):
     new_segments = []
     for i, segment in tqdm(enumerate(call['segments']), total=len(call['segments'])):
         segment_filename_str = str(Path(args.data_dir) / call_id / "audio_segments_v2" / (str(i) + '.wav'))
-        segment_result = model.transcribe(audio=segment_filename_str, language='en', batch_size=batch_size)
-        segment_text = " ".join([segment['text'].strip() for segment in segment_result['segments']])
+        if args.use_api:
+            audio_file = open(segment_filename_str, "rb")
+            segment_result = openai.Audio.transcribe("whisper-1", audio_file, initial_prompt=initial_prompt)
+            segment_text = segment_result['text']
+        else:
+            segment_result = model.transcribe(audio=segment_filename_str, language='en', batch_size=batch_size, initial_prompt=initial_prompt)
+            segment_text = " ".join([segment['text'].strip() for segment in segment_result['segments']])
         segment['text'] = segment_text
         new_segments.append(segment)
 
-    output_filename = Path(args.data_dir) / call_id / "call_retranscribed_v2.json"
+    output_filename = Path(args.data_dir) / call_id / "call_retranscribed_v3.json"
     output_filename_2 = Path(args.output_dir) / f"{call_id}.json"
 
     os.makedirs(output_filename.parent, exist_ok=True)

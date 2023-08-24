@@ -54,3 +54,73 @@ Key points from transcript:
 Transcript:
 """
 )
+
+extract_behavior_prompt = PromptTemplate(
+    input_variables=["company_name", "company_appositive", "company_description", "transcript"],
+    template="""Below is a transcript of an introductory sales call between a sales representative at Hightouch, a data integration company, and a prospect at {company_name}{company_appositive}. Your task is to read through the transcript and extract several pieces of information about the prospect. 
+
+Here is some background information about Hightouch:
+CDPs are used to help companies get data into their business tools like their marketing tools to run more targeted and effective campaigns.
+Hightouch provides a Composable CDP solution by helping companies leverage the data in their data warehouse for marketing campaigns. Hightouch syncs data from warehouses directly into SaaS tools to enable personalized marketing, sales and support experiences. It is different from a traditional CDP like Segment because traditional CDPs are less flexible.
+
+Here is some background information about {company_name}:
+{company_description}
+
+Here is the information you must extract about the prospect:
+Familiarity with Hightouch: How familiar the prospect is with Hightouch, ranging from no prior knowledge to an experienced user.
+Intent: How interested the prospect is in signing a deal with Hightouch. Are they ready to move forward with no objections, or do they have concerns or reservations about whether Hightouch can provide value for their business?
+Puzzle level: If the prospect were a puzzle for the sales rep to solve, what is the difficulty of the puzzle (very easy, easy, challenging, very challenging)? A higher difficulty indicates that understanding the prospect's needs or desires requires skillful questioning and piecing together bits of information, while a lower difficulty indicates a prospect who is very easily convinced about the value prop of Hightouch.
+
+Here is the sales call transcript. Extract the information about the prospect from this transcript as explained in the directions.
+{transcript}
+
+Extracted information about the prospect (1 sentence per piece of information):
+"""
+)
+
+clean_transcript_prompt = PromptTemplate(
+    input_variables=["company_name", "company_appositive"],
+    template="""Below is a transcript of a call between a sales representative at Hightouch, a data integration company, and a prospect at {company_name}{company_appositive}. Your task is to correct any spelling discrepancies in the transcript, correct mistakes in grammar and syntax, and remove obvious filler words. Make no other edits to the transcript.
+"""
+)
+
+
+# clean_transcript_prompt_system_only = PromptTemplate(
+#     input_variables=["company_name", "company_appositive", "transcript"],
+#     template="""Below is a transcript of a call between a sales representative at Hightouch, a data integration company, and a prospect at {company_name}{company_appositive}. Your task is to correct any spelling discrepancies in the transcript and correct mistakes in grammar and syntax, and remove obvious filler words. Make no other edits to the transcript.
+
+# Original transcript:
+# {transcript}
+
+# Corrected transcript:
+# """
+# )
+
+clean_transcript_prompt_system_only = PromptTemplate(
+    input_variables=["company_name", "company_appositive", "transcript"],
+    template="""Below is a transcript of a call between a sales representative at Hightouch, a data integration company, and a prospect at {company_name}{company_appositive}. Your task is to correct any spelling discrepancies in the transcript and correct mistakes in grammar and syntax. Additionally, remove obvious filler words such as "um", "uh", "like", "you know", when they are clearly being used as filler words. Make no other edits to the transcript.
+
+Original transcript:
+{transcript}
+
+Corrected transcript:
+"""
+)
+
+
+prospect_lm_v3_system_message = PromptTemplate(
+    input_variables=["product_name", "product_category", "company_name", "company_appositive", "sales_rep_name", "prospect_name", "prospect_position_sentence", "company_industry", "company_size", "company_description", "scenario"],
+    template="""You are a prospect at {company_name}{company_appositive} who is evaluating {product_name}, a {product_category} product.{prospect_position_sentence} You are currently on a call with a sales representative from {product_name} to understand how {product_name} can help your business. Your goal is to understand how {product_name} compares to your current solution for getting data into business tools and how {product_name} can deliver value for your business. Your name is {prospect_name}, and the {product_name} sales rep's name is {sales_rep_name}.
+
+Here is some information about {product_name}:
+CDPs are used to help companies get data into their business tools like their marketing tools to run more targeted and effective campaigns. Hightouch provides a Composable CDP solution by helping companies leverage the data in their data warehouse for marketing campaigns. Hightouch syncs data from warehouses directly into SaaS tools to enable personalized marketing, sales and support experiences. It is different from a traditional CDP like Segment because traditional CDPs are less flexible.
+
+Here is some information about your company {company_name}:
+Industry: {company_industry}
+Size: {company_size}
+Description: {company_description}
+
+Here is some additional context to help guide your responses:
+{scenario}
+"""
+)

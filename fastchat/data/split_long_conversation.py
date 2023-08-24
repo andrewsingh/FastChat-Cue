@@ -138,7 +138,7 @@ def main():
         use_fast=False,
     )
     new_content = split_all(content, args.begin, args.end, tokenizer, args.max_length)
-    new_content = filter_invalid_roles(new_content)
+    # new_content = filter_invalid_roles(new_content)
 
     print(f"#in: {len(content)}, #out: {len(new_content)}")
     json.dump(new_content, open(args.out_file, "w"), indent=2, ensure_ascii=False)
