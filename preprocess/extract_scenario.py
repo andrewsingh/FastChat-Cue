@@ -20,10 +20,6 @@ from langchain.schema import SystemMessage
 from prompts import extract_scenario_prompt
 
 
-OPENAI_API_KEY = "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"
-
-openai.api_key = OPENAI_API_KEY
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k", verbose=True)
 gpt_tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 
