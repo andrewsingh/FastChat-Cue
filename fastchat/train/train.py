@@ -177,6 +177,7 @@ def preprocess_call(
         source = example['conversations']
         if roles[source[0]["from"]] != conv.roles[0]:
             # Skip the first one if it is not from human
+            print("SKIPPING FIRST SAMPLE")
             source = source[1:]
 
         conv.messages = []
