@@ -1,13 +1,13 @@
 deepspeed fastchat/train/train_lora.py \
-    --model_name_or_path /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/output/prospect_lm_v5_peft_2048/checkpoint-432 \
+    --model_name_or_path meta-llama/Llama-2-13b-hf \
     --lora_r 8 \
     --lora_alpha 16 \
     --lora_dropout 0.05 \
-    --data_path /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/data/prospect_lm/v5/prospect_lm_v5_train_split_max_2000.json \
+    --data_path /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/data/prospect_lm/v6/prospect_lm_v6_train.json \
     --prompt_template "prospect_lm" \
     --bf16 True \
-    --output_dir /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/output/prospect_lm_v5_peft_2048 \
-    --num_train_epochs 5 \
+    --output_dir /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/output/prospect_lm_v6_peft \
+    --num_train_epochs 3 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 8 \
@@ -15,7 +15,7 @@ deepspeed fastchat/train/train_lora.py \
     --save_strategy "epoch" \
     --save_total_limit 2 \
     --learning_rate 2e-5 \
-    --weight_decay 0. \
+    --weight_decay 0 \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \

@@ -205,9 +205,9 @@ def preprocess_call(
         total_len = int(target.ne(tokenizer.pad_token_id).sum())
 
         turns = conversation.split(conv.sep2)
+        turns = [turn for turn in turns if len(turn) > 0]
         cur_len = 1
         target[:cur_len] = IGNORE_TOKEN_ID
-        
         for i, turn in enumerate(turns):
             if turn == "":
                 break
@@ -235,7 +235,7 @@ def preprocess_call(
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
             print(tokenizer.decode(z))
-        # pdb.set_trace()
+        
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
                 target[:] = IGNORE_TOKEN_ID
