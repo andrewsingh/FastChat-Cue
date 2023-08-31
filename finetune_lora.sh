@@ -3,14 +3,14 @@ deepspeed fastchat/train/train_lora.py \
     --lora_r 8 \
     --lora_alpha 16 \
     --lora_dropout 0.05 \
-    --data_path /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/data/prospect_lm/v6/prospect_lm_v6_train.json \
+    --data_path /home/ubuntu/FastChat-Cue/data/v6/prospect_lm_v6_train.json \
     --prompt_template "prospect_lm" \
     --bf16 True \
-    --output_dir /home/ubuntu/prospect-lm-a100-80gb/FastChat-Cue/output/prospect_lm_v6_peft \
+    --output_dir /home/ubuntu/FastChat-Cue/output/prospect_lm_v6_peft_testing \
     --num_train_epochs 3 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 8 \
+    --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
     --save_strategy "epoch" \
     --save_total_limit 2 \
@@ -19,8 +19,9 @@ deepspeed fastchat/train/train_lora.py \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
-    --tf32 True \
+    --tf32 False \
     --model_max_length 2048 \
     --q_lora True \
     --lazy_preprocess True \
-    --deepspeed playground/deepspeed_config_s2.json
+    --deepspeed playground/deepspeed_config_s2.json \
+    --gradient_checkpointing True
