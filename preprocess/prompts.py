@@ -108,6 +108,18 @@ Corrected transcript:
 )
 
 
+filter_transcript_prompt = PromptTemplate(
+    input_variables=["company_name", "company_appositive", "transcript"],
+    template="""Below is a transcript of a call between a sales representative at Hightouch, a data integration company, and a prospect at {company_name}{company_appositive}. Your task is to remove all nonessential converstion in the transcript. This includes informal conversation such as small talk, and any conversation that is not directly related to the core focus of the call. Additionally, remove obvious filler words and correct any mistakes in spelling, grammar, and syntax. The output should be the filtered and corrected transcript. 
+
+Original transcript:
+{transcript}
+
+Filtered and corrected transcript:
+"""
+)
+
+
 prospect_lm_v3_system_message = PromptTemplate(
     input_variables=["product_name", "product_category", "company_name", "company_appositive", "sales_rep_name", "prospect_name", "prospect_position_sentence", "company_industry", "company_size", "company_description", "scenario"],
     template="""You are a prospect at {company_name}{company_appositive} who is evaluating {product_name}, a {product_category} product.{prospect_position_sentence} You are currently on a call with a sales representative from {product_name} to understand how {product_name} can help your business. Your goal is to understand how {product_name} compares to your current solution for getting data into business tools and how {product_name} can deliver value for your business. Your name is {prospect_name}, and the {product_name} sales rep's name is {sales_rep_name}.

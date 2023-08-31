@@ -186,10 +186,6 @@ def preprocess_call(
             assert role == conv.roles[j % 2], f"{i}"
             conv.append_message(role, sentence["value"])
         conversations.append(conv.get_prompt())
-    
-    # print("Conversation count: ", len(conversations))
-    # print("Random conversation:\n")
-    # print(np.random.choice(conversations))
 
     # Tokenize conversations
     input_ids = tokenizer(
@@ -221,11 +217,16 @@ def preprocess_call(
             if len(parts) != 2:
                 break
             parts[0] += sep
-            # "-2" is hardcoded for the LLaMA tokenizer to make the offset correct.
-            instruction_len = len(tokenizer(parts[0]).input_ids) - 2
+                     
+            if i == len(turns) - 1:
+                # "-2" is hardcoded for the LLaMA tokenizer to make the offset correct.
+                instruction_len = len(tokenizer(parts[0]).input_ids) - 2
+                # Ignore the user instructions
+                target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
+            else:
+                # Ignore everything (use as context only)
+                target[cur_len : cur_len + turn_len] = IGNORE_TOKEN_ID
 
-            # Ignore the user instructions
-            target[cur_len : cur_len + instruction_len] = IGNORE_TOKEN_ID
             cur_len += turn_len
 
         target[cur_len:] = IGNORE_TOKEN_ID
@@ -238,7 +239,7 @@ def preprocess_call(
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
                 target[:] = IGNORE_TOKEN_ID
-                rank0_print(
+                print(
                     f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
                     f" (ignored)"
                 )
