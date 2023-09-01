@@ -32,6 +32,7 @@ from transformers.trainer_pt_utils import LabelSmoother
 from fastchat.conversation import SeparatorStyle, get_conv_template
 from fastchat.model.model_adapter import get_conversation_template
 import pdb
+import random
 
 IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 
@@ -177,7 +178,7 @@ def preprocess_call(
         source = example['conversations']
         if roles[source[0]["from"]] != conv.roles[0]:
             # Skip the first one if it is not from human
-            print("SKIPPING FIRST SAMPLE")
+            rank0_print("SKIPPING FIRST SAMPLE")
             source = source[1:]
 
         conv.messages = []
@@ -234,16 +235,16 @@ def preprocess_call(
         if False:  # Inspect and check the correctness of masking
             z = target.clone()
             z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
-            print(tokenizer.decode(z))
+            rank0_print(tokenizer.decode(z))
         
         if cur_len < tokenizer.model_max_length:
             if cur_len != total_len:
                 target[:] = IGNORE_TOKEN_ID
-                print(
+                rank0_print(
                     f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
                     f" (ignored)"
                 )
-        # print(f"Conversation: {conversation}\nTarget: {target}\n\n\n")
+
     return dict(
         input_ids=input_ids,
         labels=targets,
@@ -370,6 +371,10 @@ def make_supervised_data_module(
     rank0_print("Loading data...")
 
     train_json = json.load(open(data_args.data_path, "r"))
+    rank0_print("Number of examples: ", len(train_json))
+    rank0_print("Shuffling data")
+    random.shuffle(train_json)
+
     train_dataset = dataset_cls(train_json, tokenizer=tokenizer, data_args=data_args)
 
     if data_args.eval_data_path:
